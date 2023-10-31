@@ -1,0 +1,75 @@
+import csv
+import datetime
+
+def rec_exp(exp, date, category, des, amount):
+    exp.append([date, category, des, amount])
+
+def generate_monthly_report(exp, year, month):
+    report = []
+    total_exp = 0
+    for expense in exp:
+        expense_date = datetime.datetime.strptime(expense[0], "%Y-%m-%d")
+        if expense_date.year == year and expense_date.month == month:
+            report.append(expense)
+            total_exp += float(expense[3])
+    
+    return report, total_exp
+
+def save_exp_to_file(exp, filename):
+    with open(filename, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Date", "Category", "Description", "Amount"])
+        writer.writerows(exp)
+
+def load_exp_from_file(filename):
+    exp = []
+    try:
+        with open(filename, 'r') as file:
+            reader = csv.reader(file)
+            next(reader) 
+            for row in reader:
+                exp.append(row)
+    except FileNotFoundError:
+        pass
+    return exp
+
+def main():
+    exp = load_exp_from_file("exp.csv")
+
+    while True:
+        print("\nPersonal Expense Tracker")
+        print("1. Record an expense")
+        print("2. Generate a monthly report")
+        print("3. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            date = input("Enter the date (YYYY-MM-DD): ")
+            category = input("Enter the category: ")
+            des = input("Enter the description: ")
+            amount = input("Enter the amount: ")
+            rec_exp(exp, date, category, des, amount)
+            save_exp_to_file(exp, "exp.csv")
+            print("Expense recorded successfully!")
+
+        elif choice == "2":
+            year = int(input("Enter the year (e.g., 2023): "))
+            month = int(input("Enter the month (1-12): "))
+            report, total_exp = generate_monthly_report(exp, year, month)
+            if report:
+                print("\nMonthly Expense Report for {}/{}:".format(month, year))
+                for expense in report:
+                    print("{:<12} {:<12} {:<30} {:>10}".format(expense[0], expense[1], expense[2], expense[3]))
+                print("\nTotal Expenses for {}/{}: Rs{:.2f}".format(month, year, total_exp))
+            else:
+                print("No expenses found for the selected month.")
+
+        elif choice == "3":
+            break
+
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
